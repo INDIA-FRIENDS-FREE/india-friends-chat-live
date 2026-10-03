@@ -1,12 +1,11 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>India Friends Chat</title>
-    <!-- Firebase के लाइव ग्लोबल सर्वर की स्क्रिप्ट्स (जो हर फोन, टैबलेट और कंप्यूटर को जोड़ेंगी) -->
-    <script src="https://gstatic.com"></script>
-    <script src="https://gstatic.com"></script>
+    <!-- डायरेक्ट कनेक्शन वाला ओपन सर्वर नेटवर्क -->
+    <script src="https://unpkg.com"></script>
     <style>
         :root {
             --bg-color: #0b141a;
@@ -98,85 +97,71 @@
 
 <div class="chat-container">
     <div class="chat-header">India Friends Chat 💬</div>
-    <div class="status-bar" id="statusText">ग्लोबल सर्वर एक्टिव है। नीचे Next बटन दबाएं। 📡</div>
+    <div class="status-bar" id="statusText">डायरेक्ट लाइव नेटवर्क चालू है! 📡</div>
     <div class="chat-messages" id="chatBox">
-        <div class="message system">India Friends Chat नेटवर्क में आपका स्वागत है भाई! 🙏</div>
+        <div class="message system">India Friends Chat में आपका स्वागत है! 🙏</div>
     </div>
     <div class="chat-input-area">
-        <button class="next-btn" id="nextBtn" onclick="findStranger()">Next</button>
+        <button class="next-btn" id="nextBtn" onclick="startLiveConnection()">Next</button>
         <input type="text" class="chat-input" id="messageInput" placeholder="यहाँ अपना संदेश लिखें...">
-        <button class="send-btn" id="sendBtn" onclick="sendMessage()">भेजें</button>
+        <button class="send-btn" id="sendBtn" onclick="sendLiveMessage()">भेजें</button>
     </div>
 </div>
 
 <script>
-    // बिल्कुल फ्री और ओपन ग्लोबल लाइव डेटाबेस सर्वर कॉन्फ़िगरेशन
-    const firebaseConfig = { databaseURL: "https://firebasedatabase.app" };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    
-    let chatRef, myId = Math.random().toString(36).substring(2, 9), strangerId = null;
+    var chatBox = document.getElementById("chatBox");
+    var input = document.getElementById("messageInput");
+    var statusText = document.getElementById("statusText");
+    var peer, conn;
 
-    function findStranger() {
-        document.getElementById("chatBox").innerHTML = '<div class="message system">ऑनलाइन अजनबियों की तलाश जारी है... 🔍</div>';
-        document.getElementById("statusText").innerText = "Connecting...";
-        
-        db.ref("waiting").once("value", snapshot => {
-            let waitingUser = snapshot.val();
-            if (waitingUser && waitingUser !== myId) {
-                strangerId = waitingUser;
-                db.ref("waiting").remove();
-                startChat(myId + "_" + strangerId);
-            } else {
-                db.ref("waiting").set(myId);
-                db.ref("waiting").on("value", snap => {
-                    if (!snap.exists() && !strangerId) {
-                        db.ref("rooms").once("value", roomsSnap => {
-                            roomsSnap.forEach(room => {
-                                if (room.key.includes(myId)) {
-                                    strangerId = room.key.replace(myId, "").replace("_", "");
-                                    startChat(room.key);
-                                }
-                            });
-                        });
-                    }
-                });
-            }
+    // यह नेटवर्क सीधे बिना किसी पासवर्ड के फोन और लैपटॉप को आपस में जोड़ देगा
+    function startLiveConnection() {
+        chatBox.innerHTML = '<div class="message system">लाइव कनेक्शन स्थापित किया जा रहा है... 🔍</div>';
+        statusText.innerText = "Connecting...";
+
+        // फिक्स रूम आईडी जिससे लैपटॉप और फोन तुरंत आपस में हाथ मिला लें
+        peer = new Peer('india-friends-global-room-vip');
+
+        peer.on('open', function(id) {
+            // अगर यह दूसरा डिवाइस है, तो यह पहले वाले से कनेक्ट होगा
+            conn = peer.connect('india-friends-global-room-vip');
+            setupChatSettings();
+        });
+
+        peer.on('connection', function(incomingConn) {
+            conn = incomingConn;
+            setupChatSettings();
         });
     }
 
-    function startChat(roomId) {
-        document.getElementById("statusText").innerText = "अजनबी मिल गया! बातचीत शुरू करें। 👥";
-        document.getElementById("chatBox").innerHTML += '<div class="message system">लाइव यूज़र कनेक्ट हो चुका है! अपना संदेश भेजें।</div>';
-        
-        chatRef = db.ref("rooms/" + roomId);
-        chatRef.on("child_added", snap => {
-            let msgData = snap.val();
-            if (msgData.sender !== myId) {
-                showMsg(msgData.text, "received");
-            }
+    function setupChatSettings() {
+        conn.on('data', function(data) {
+            showIncomingMessage(data, "received");
         });
+        
+        statusText.innerText = "अजनबी मिल गया! बातचीत शुरू करें। 👥";
+        chatBox.innerHTML += '<div class="message system">लाइव यूज़र कनेक्ट हो चुका है! संदेश भेजें।</div>';
     }
 
-    function sendMessage() {
-        let txt = document.getElementById("messageInput").value.trim();
-        if (txt !== "" && chatRef) {
-            chatRef.push({ sender: myId, text: txt });
-            showMsg(txt, "sent");
-            document.getElementById("messageInput").value = "";
+    function sendLiveMessage() {
+        var msg = input.value.trim();
+        if (msg !== "" && conn) {
+            conn.send(msg);
+            showIncomingMessage(msg, "sent");
+            input.value = "";
         }
     }
 
-    function showMsg(text, type) {
-        let div = document.createElement("div");
-        div.className = "message " + type;
-        div.innerText = text;
-        document.getElementById("chatBox").appendChild(div);
-        document.getElementById("chatBox").scrollTop = document.getElementById("chatBox").scrollHeight;
+    function showIncomingMessage(text, type) {
+        var msgDiv = document.createElement("div");
+        msgDiv.className = "message " + type;
+        msgDiv.innerText = text;
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    document.getElementById("messageInput").addEventListener("keypress", function(event) {
-        if (event.key === "Enter") { sendMessage(); }
+    input.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") { sendLiveMessage(); }
     });
 </script>
 
