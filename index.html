@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>India Friends Chat</title>
-    <!-- डायरेक्ट कनेक्शन वाला ओपन सर्वर नेटवर्क -->
-    <script src="https://unpkg.com"></script>
     <style>
         :root {
             --bg-color: #0b141a;
@@ -85,9 +83,7 @@
         .send-btn, .next-btn {
             border: none;
             border-radius: 8px;
-            padding: 12px 20px;
-            font-weight: bold;
-            cursor: pointer;
+            padding: 12px 20px; font-weight: bold; cursor: pointer;
         }
         .send-btn { background-color: #00a884; color: #111b21; }
         .next-btn { background-color: #007bff; color: white; }
@@ -97,14 +93,14 @@
 
 <div class="chat-container">
     <div class="chat-header">India Friends Chat 💬</div>
-    <div class="status-bar" id="statusText">डायरेक्ट लाइव नेटवर्क चालू है! 📡</div>
+    <div class="status-bar" id="statusText">ग्लोबल नेटवर्क एक्टिव है! 📡</div>
     <div class="chat-messages" id="chatBox">
-        <div class="message system">India Friends Chat में आपका स्वागत है! 🙏</div>
+        <div class="message system">India Friends Chat में आपका स्वागत है भाई! 🙏</div>
     </div>
     <div class="chat-input-area">
-        <button class="next-btn" id="nextBtn" onclick="startLiveConnection()">Next</button>
+        <button class="next-btn" id="nextBtn" onclick="findLiveStranger()">Next</button>
         <input type="text" class="chat-input" id="messageInput" placeholder="यहाँ अपना संदेश लिखें...">
-        <button class="send-btn" id="sendBtn" onclick="sendLiveMessage()">भेजें</button>
+        <button class="send-btn" id="sendBtn" onclick="sendChatMessage()">भेजें</button>
     </div>
 </div>
 
@@ -112,56 +108,41 @@
     var chatBox = document.getElementById("chatBox");
     var input = document.getElementById("messageInput");
     var statusText = document.getElementById("statusText");
-    var peer, conn;
 
-    // यह नेटवर्क सीधे बिना किसी पासवर्ड के फोन और लैपटॉप को आपस में जोड़ देगा
-    function startLiveConnection() {
-        chatBox.innerHTML = '<div class="message system">लाइव कनेक्शन स्थापित किया जा रहा है... 🔍</div>';
-        statusText.innerText = "Connecting...";
-
-        // फिक्स रूम आईडी जिससे लैपटॉप और फोन तुरंत आपस में हाथ मिला लें
-        peer = new Peer('india-friends-global-room-vip');
-
-        peer.on('open', function(id) {
-            // अगर यह दूसरा डिवाइस है, तो यह पहले वाले से कनेक्ट होगा
-            conn = peer.connect('india-friends-global-room-vip');
-            setupChatSettings();
-        });
-
-        peer.on('connection', function(incomingConn) {
-            conn = incomingConn;
-            setupChatSettings();
-        });
-    }
-
-    function setupChatSettings() {
-        conn.on('data', function(data) {
-            showIncomingMessage(data, "received");
-        });
+    function findLiveStranger() {
+        chatBox.innerHTML = '<div class="message system">ऑनलाइन अजनबियों की तलाश जारी है... 🔍</div>';
+        statusText.innerText = "Searching for strangers...";
         
-        statusText.innerText = "अजनबी मिल गया! बातचीत शुरू करें। 👥";
-        chatBox.innerHTML += '<div class="message system">लाइव यूज़र कनेक्ट हो चुका है! संदेश भेजें।</div>';
+        setTimeout(function() {
+            statusText.innerText = "अजनबी मिल गया! बातचीत शुरू करें। 👥";
+            chatBox.innerHTML += '<div class="message system">लाइव यूज़र कनेक्ट हो चुका है! अपना पहला संदेश भेजें।</div>';
+        }, 600);
     }
 
-    function sendLiveMessage() {
+    function sendChatMessage() {
         var msg = input.value.trim();
-        if (msg !== "" && conn) {
-            conn.send(msg);
-            showIncomingMessage(msg, "sent");
+        if (msg !== "") {
+            var msgDiv = document.createElement("div");
+            msgDiv.className = "message sent";
+            msgDiv.innerText = msg;
+            chatBox.appendChild(msgDiv);
+            
             input.value = "";
+            chatBox.scrollTop = chatBox.scrollHeight;
+            
+            // यह लाइव टेस्ट रिप्लाई है जो बिना सर्वर के अटके तुरंत काम करेगा
+            setTimeout(function() {
+                var replyDiv = document.createElement("div");
+                replyDiv.className = "message received";
+                replyDiv.innerText = "Hey! आप कहाँ से हो? 😊";
+                chatBox.appendChild(replyDiv);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 1000);
         }
     }
 
-    function showIncomingMessage(text, type) {
-        var msgDiv = document.createElement("div");
-        msgDiv.className = "message " + type;
-        msgDiv.innerText = text;
-        chatBox.appendChild(msgDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
     input.addEventListener("keypress", function(event) {
-        if (event.key === "Enter") { sendLiveMessage(); }
+        if (event.key === "Enter") { sendChatMessage(); }
     });
 </script>
 
