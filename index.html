@@ -4,87 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>India Friends Chat</title>
+    <!-- असली Socket.io क्लाइंट लाइब्रेरी -->
+    <script src="https://socket.io"></script>
     <style>
-        :root {
-            --bg-color: #0b141a;
-            --container-bg: #111b21;
-            --header-bg: #202c33;
-            --input-bg: #2a3942;
-            --text-color: #e9edef;
-            --sent-msg: #005c4b;
-            --received-msg: #202c33;
-        }
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background-color: var(--bg-color);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            color: var(--text-color);
-        }
-        .chat-container {
-            width: 100%;
-            max-width: 450px;
-            height: 100vh;
-            background-color: var(--container-bg);
-            display: flex;
-            flex-direction: column;
-        }
-        .chat-header {
-            background-color: var(--header-bg);
-            padding: 15px;
-            font-weight: bold;
-            color: #00a884;
-            font-size: 1.2rem;
-            text-align: center;
-        }
-        .status-bar {
-            background-color: rgba(0,0,0,0.2);
-            padding: 10px;
-            text-align: center;
-            font-size: 0.9rem;
-            color: #ffd27d;
-        }
-        .chat-messages {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .message {
-            padding: 10px 15px;
-            border-radius: 8px;
-            max-width: 75%;
-            font-size: 0.95rem;
-        }
+        :root { --bg-color: #0b141a; --container-bg: #111b21; --header-bg: #202c33; --input-bg: #2a3942; --text-color: #e9edef; --sent-msg: #005c4b; --received-msg: #202c33; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg-color); margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; color: var(--text-color); }
+        .chat-container { width: 100%; max-width: 450px; height: 100vh; background-color: var(--container-bg); display: flex; flex-direction: column; }
+        .chat-header { background-color: var(--header-bg); padding: 15px; font-weight: bold; color: #00a884; font-size: 1.2rem; text-align: center; }
+        .status-bar { background-color: rgba(0,0,0,0.2); padding: 10px; text-align: center; font-size: 0.9rem; color: #ffd27d; }
+        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .message { padding: 10px 15px; border-radius: 8px; max-width: 75%; font-size: 0.95rem; }
         .message.received { background-color: var(--received-msg); align-self: flex-start; }
         .message.sent { background-color: var(--sent-msg); align-self: flex-end; }
         .message.system { background-color: transparent; color: #8696a0; align-self: center; text-align: center; font-size: 0.85rem; }
-        .chat-input-area {
-            background-color: var(--header-bg);
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .chat-input {
-            flex: 1;
-            background-color: var(--input-bg);
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            color: var(--text-color);
-            outline: none;
-        }
-        .send-btn, .next-btn {
-            border: none;
-            border-radius: 8px;
-            padding: 12px 20px; font-weight: bold; cursor: pointer;
-        }
+        .chat-input-area { background-color: var(--header-bg); padding: 15px; display: flex; align-items: center; gap: 10px; }
+        .chat-input { flex: 1; background-color: var(--input-bg); border: none; padding: 12px; border-radius: 8px; color: var(--text-color); outline: none; }
+        .send-btn, .next-btn { border: none; border-radius: 8px; padding: 12px 20px; font-weight: bold; cursor: pointer; }
         .send-btn { background-color: #00a884; color: #111b21; }
         .next-btn { background-color: #007bff; color: white; }
     </style>
@@ -93,58 +28,64 @@
 
 <div class="chat-container">
     <div class="chat-header">India Friends Chat 💬</div>
-    <div class="status-bar" id="statusText">ग्लोबल नेटवर्क एक्टिव है! 📡</div>
-    <div class="chat-messages" id="chatBox">
-        <div class="message system">India Friends Chat में आपका स्वागत है भाई! 🙏</div>
-    </div>
+    <div class="status-bar" id="statusText">Node.js सर्वर से कनेक्टेड। 'Next' दबाएं। 📡</div>
+    <div class="chat-messages" id="chatBox"><div class="message system">स्वागत है भाई! 🙏</div></div>
     <div class="chat-input-area">
-        <button class="next-btn" id="nextBtn" onclick="findLiveStranger()">Next</button>
-        <input type="text" class="chat-input" id="messageInput" placeholder="यहाँ अपना संदेश लिखें...">
-        <button class="send-btn" id="sendBtn" onclick="sendChatMessage()">भेजें</button>
+        <button class="next-btn" id="nextBtn" onclick="findStranger()">Next</button>
+        <input type="text" class="chat-input" id="messageInput" placeholder="यहाँ संदेश लिखें..." disabled>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled>भेजें</button>
     </div>
 </div>
 
 <script>
-    var chatBox = document.getElementById("chatBox");
-    var input = document.getElementById("messageInput");
-    var statusText = document.getElementById("statusText");
+    // यह हमारे लाइव Node.js सर्वर से ऑटोमैटिक हाथ मिलाएगा
+    const socket = io(); 
+    let currentRoom = null;
 
-    function findLiveStranger() {
-        chatBox.innerHTML = '<div class="message system">ऑनलाइन अजनबियों की तलाश जारी है... 🔍</div>';
-        statusText.innerText = "Searching for strangers...";
-        
-        setTimeout(function() {
-            statusText.innerText = "अजनबी मिल गया! बातचीत शुरू करें। 👥";
-            chatBox.innerHTML += '<div class="message system">लाइव यूज़र कनेक्ट हो चुका है! अपना पहला संदेश भेजें।</div>';
-        }, 600);
+    function findStranger() {
+        document.getElementById("chatBox").innerHTML = '<div class="message system">ऑनलाइन अजनबियों की तलाश जारी है... 🔍</div>';
+        document.getElementById("statusText").innerText = "Connecting...";
+        socket.emit("find-stranger");
     }
 
-    function sendChatMessage() {
-        var msg = input.value.trim();
-        if (msg !== "") {
-            var msgDiv = document.createElement("div");
-            msgDiv.className = "message sent";
-            msgDiv.innerText = msg;
-            chatBox.appendChild(msgDiv);
-            
-            input.value = "";
-            chatBox.scrollTop = chatBox.scrollHeight;
-            
-            // यह लाइव टेस्ट रिप्लाई है जो बिना सर्वर के अटके तुरंत काम करेगा
-            setTimeout(function() {
-                var replyDiv = document.createElement("div");
-                replyDiv.className = "message received";
-                replyDiv.innerText = "Hey! आप कहाँ से हो? 😊";
-                chatBox.appendChild(replyDiv);
-                chatBox.scrollTop = chatBox.scrollHeight;
-            }, 1000);
+    socket.on("waiting-status", (msg) => {
+        document.getElementById("statusText").innerText = msg;
+    });
+
+    // जैसे ही सर्वर दो अलग-अलग डिवाइसेस को एक रूम में जोड़ेगा
+    socket.on("chat-started", (roomId) => {
+        currentRoom = roomId;
+        document.getElementById("messageInput").disabled = false;
+        document.getElementById("sendBtn").disabled = false;
+        document.getElementById("statusText").innerText = "अजनबी मिल गया! बातचीत शुरू करें। 👥";
+        document.getElementById("chatBox").innerHTML += '<div class="message system">लाइव यूज़र कनेक्ट हो चुका है!</div>';
+    });
+
+    // जब सामने वाले का लाइव मैसेज मिलेगा
+    socket.on("receive-msg", (text) => {
+        showMsg(text, "received");
+    });
+
+    function sendMessage() {
+        let txt = document.getElementById("messageInput").value.trim();
+        if (txt !== "" && currentRoom) {
+            socket.emit("send-msg", { room: currentRoom, text: txt });
+            showMsg(txt, "sent");
+            document.getElementById("messageInput").value = "";
         }
     }
 
-    input.addEventListener("keypress", function(event) {
-        if (event.key === "Enter") { sendChatMessage(); }
+    function showMsg(text, type) {
+        let div = document.createElement("div");
+        div.className = "message " + type;
+        div.innerText = text;
+        document.getElementById("chatBox").appendChild(div);
+        document.getElementById("chatBox").scrollTop = document.getElementById("chatBox").scrollHeight;
+    }
+
+    document.getElementById("messageInput").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") { sendMessage(); }
     });
 </script>
-
 </body>
 </html>
