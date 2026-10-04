@@ -61,7 +61,7 @@ io.on("connection", (socket) => {
 });
 
 // सर्वर को पोर्ट 3000 पर चालू करो
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 server.listen(PORT, () => {
     console.log(`असली बैकएंड सर्वर चालू है पोर्ट: ${PORT}`);
 });
