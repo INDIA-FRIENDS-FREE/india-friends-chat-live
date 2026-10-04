@@ -2,7 +2,7 @@
 <html lang="en" data-lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Global Friends Chat - Talk to Strangers</title>
     <!-- Live Socket.io Client Library -->
     <script src="https://socket.io"></script>
@@ -33,18 +33,21 @@
             --chat-pattern-size: 20px 20px;
         }
 
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg-color); margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; color: var(--text-color); transition: background 0.3s; }
-        .chat-container { width: 100%; max-width: 450px; height: 100vh; background-color: var(--container-bg); display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.3); }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg-color); display: flex; justify-content: center; align-items: center; height: 100vh; color: var(--text-color); transition: background 0.3s; overflow: hidden; }
         
-        .chat-header { background-color: var(--header-bg); padding: 12px 15px; font-weight: bold; color: #00a884; font-size: 1.1rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        /* स्क्रीन के अंदर फिट रहने वाला कंटेनर */
+        .chat-container { width: 100%; max-width: 450px; height: 100vh; background-color: var(--container-bg); display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.3); position: relative; }
+        
+        .chat-header { background-color: var(--header-bg); padding: 12px 15px; font-weight: bold; color: #00a884; font-size: 1.1rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); flex-shrink: 0; }
         .header-controls { display: flex; gap: 8px; }
-        .theme-btn, .lang-btn { background: transparent; border: 2px solid #00a884; color: #00a884; padding: 5px 10px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition: all 0.2s; }
+        .theme-btn, .lang-btn { background: transparent; border: 2px solid #00a884; color: #00a884; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition: all 0.2s; }
         .theme-btn:hover, .lang-btn:hover { background-color: #00a884; color: var(--btn-text); }
 
-        .status-bar { background-color: rgba(0,0,0,0.2); padding: 10px; text-align: center; font-size: 0.9rem; color: #ffd27d; }
+        .status-bar { background-color: rgba(0,0,0,0.2); padding: 10px; text-align: center; font-size: 0.9rem; color: #ffd27d; flex-shrink: 0; }
         
-        /* जादुई वॉलपेपर बैकग्राउंड एरिया */
-        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background-image: var(--chat-pattern); background-size: var(--chat-pattern-size); background-position: center; background-repeat: no-repeat; background-size: cover; transition: background 0.3s; }
+        /* 100% असली फिक्स्ड बैकग्राउंड एरिया */
+        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background-image: var(--chat-pattern); background-size: var(--chat-pattern-size); background-position: center; background-repeat: no-repeat; background-size: cover; }
         
         .message { padding: 10px 15px; border-radius: 8px; max-width: 75%; font-size: 0.95rem; box-shadow: 0 1px 2px rgba(0,0,0,0.15); line-height: 1.4; word-wrap: break-word; }
         .message.received { background-color: var(--received-msg); align-self: flex-start; border-top-left-radius: 0; color: var(--text-color); }
@@ -52,14 +55,14 @@
         .message img { max-width: 100%; border-radius: 6px; margin-top: 5px; display: block; }
         .message.system { background-color: rgba(0, 0, 0, 0.4); color: #e9edef; align-self: center; text-align: center; font-size: 0.85rem; border-radius: 6px; box-shadow: none; padding: 5px 10px; }
         
-        /* इनपुट टूल्स एरिया */
-        .chat-input-area { background-color: var(--header-bg); padding: 12px 15px; display: flex; align-items: center; gap: 8px; }
-        .chat-input { flex: 1; background-color: var(--input-bg); border: none; padding: 12px; border-radius: 8px; color: var(--text-color); outline: none; border: 1px solid rgba(0,0,0,0.1); }
+        /* इनपुट एरिया - जो कभी स्क्रीन के बाहर नहीं भागेगा */
+        .chat-input-area { background-color: var(--header-bg); padding: 12px 15px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; width: 100%; }
+        .chat-input { flex: 1; background-color: var(--input-bg); border: none; padding: 12px; border-radius: 8px; color: var(--text-color); outline: none; border: 1px solid rgba(0,0,0,0.1); font-size: 0.95rem; }
         
         .media-btn, .bg-btn { background-color: #2a3942; color: #00a884; border: 1px solid #00a884; border-radius: 8px; padding: 11px 12px; font-weight: bold; cursor: pointer; font-size: 0.85rem; white-space: nowrap; }
         [data-theme="light"] .media-btn, [data-theme="light"] .bg-btn { background-color: #ffffff; }
         
-        .send-btn, .next-btn { border: none; border-radius: 8px; padding: 12px 18px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .send-btn, .next-btn { border: none; border-radius: 8px; padding: 12px 18px; font-weight: bold; cursor: pointer; transition: background 0.2s; font-size: 0.95rem; }
         .send-btn { background-color: #00a884; color: #111b21; }
         .send-btn:disabled, .media-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .next-btn { background-color: #007bff; color: white; }
@@ -82,11 +85,9 @@
     <div class="chat-input-area">
         <button class="next-btn" id="nextBtn" onclick="findStranger()">Next</button>
         
-        <!-- मीडिया फ़ाइल इनपुट (कैमरा/फोटो) -->
         <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(this)">
         <button class="media-btn" id="mediaBtn" onclick="document.getElementById('fileInput').click()" disabled>📎 Media</button>
         
-        <!-- खुद की पिक बैकग्राउंड में लगाने वाला इनपुट बटन -->
         <input type="file" id="bgInput" accept="image/*" style="display: none;" onchange="changeBackgroundWallpaper(this)">
         <button class="bg-btn" id="bgBtn" onclick="document.getElementById('bgInput').click()">🖼️ Wallpaper</button>
         
@@ -115,7 +116,7 @@
         },
         hi: {
             title: "ग्लोबल चैट 💬",
-            welcome: "फ्रेंड्स चैट में आपका स्वागत है! 🙏",
+            welcome: "फ्रेंड्स चैट में अफवाह स्वागत है! 🙏",
             connected: "सर्वर से कनेक्टेड। 'Next' दबाएं। 📡",
             searching: "ऑनलाइन अजनबियों की तलाश जारी है... 🔍",
             connecting: "कनेक्ट किया जा रहा है...",
@@ -128,17 +129,14 @@
         }
     };
 
-    // बैकग्राउंड में खुद की पिक सेट करने का जादुई फंक्शन
+    // 100% वर्किंग वॉलपेपर फिक्स फंक्शन
     function changeBackgroundWallpaper(input) {
-        const file = input.files[0];
-        if (file) {
+        if (input.files && input.files[0]) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                const chatBox = document.getElementById("chatBox");
-                // चैट स्क्रीन के बैकग्राउंड में इमेज सेट करना
-                chatBox.style.backgroundImage = "url('" + e.target.result + "')";
+                document.getElementById("chatBox").style.backgroundImage = "url('" + e.target.result + "')";
             };
-            reader.readAsDataURL(file);
+            reader.readAsDataURL(input.files[0]);
         }
     }
 
@@ -172,4 +170,3 @@
     }
 
     function findStranger() {
-        const lang = document.documentElement.getAttribute("data-lang");
