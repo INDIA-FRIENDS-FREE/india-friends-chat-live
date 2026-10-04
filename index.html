@@ -39,7 +39,8 @@
 
 <script>
     // यह हमारे लाइव Node.js सर्वर से ऑटोमैटिक हाथ मिलाएगा
-    const socket = io(); 
+  const socket = io("https://india-friends-chat-live.onrender.com");
+
     let currentRoom = null;
 
     function findStranger() {
