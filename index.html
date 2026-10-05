@@ -7,9 +7,11 @@
     <script src="/socket.io/socket.io.js"></script>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; background: #121212; color: white; padding: 20px; }
-        .chat-box { max-width: 400px; margin: 0 auto; background: #1e1e1e; padding: 20px; border-radius: 10px; }
+        .chat-box { max-width: 400px; margin: 0 auto; background: #1e1e1e; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: #0070f3; color: white; border: none; border-radius: 5px; margin-top: 10px; }
-        #messages { height: 200px; overflow-y: auto; border: 1px solid #333; margin: 10px 0; padding: 10px; text-align: left; }
+        #messages { height: 250px; overflow-y: auto; border: 1px solid #333; margin: 10px 0; padding: 10px; text-align: left; background: #111; border-radius: 5px; }
+        .input-area { display: flex; gap: 5px; margin-top: 10px; }
+        #msgInput { flex: 1; padding: 10px; border-radius: 5px; border: 1px solid #333; background: #222; color: white; }
     </style>
 </head>
 <body>
@@ -18,11 +20,17 @@
         <h2>Welcome to Friends Chat!</h2>
         <div id="status">सर्वर से जुड़ रहे हैं...</div>
         <div id="messages"></div>
+        
+        <!-- मैसेज टाइप करने की जगह (जो पहले मिसिंग थी) -->
+        <div class="input-area">
+            <input type="text" id="msgInput" placeholder="मैसेज टाइप करें..." disabled />
+            <button id="sendBtn" onclick="sendMessage()" disabled>Send</button>
+        </div>
+        
         <button id="nextBtn" onclick="findStranger()">Next 📷</button>
     </div>
 
     <script>
-        // Render के लिए सबसे ज़रूरी बदलाव (ब्रैकेट खाली रखा है ताकि यह ऑटो-कनेक्ट हो)
         const socket = io(); 
         let currentRoom = null;
 
@@ -32,6 +40,8 @@
 
         function findStranger() {
             document.getElementById("messages").innerHTML = "";
+            document.getElementById("msgInput").disabled = true;
+            document.getElementById("sendBtn").disabled = true;
             socket.emit("find-stranger");
         }
 
@@ -42,12 +52,30 @@
         socket.on("chat-start", (data) => {
             currentRoom = data.room;
             document.getElementById("status").innerText = "अजनबी मिल गया! चैट शुरू करें।";
-            // यहाँ आप मैसेज भेजने या इनपुट दिखाने का लॉजिक डाल सकते हैं
+            // अजनबी मिलते ही इनपुट और सेंड बटन चालू हो जाएंगे
+            document.getElementById("msgInput").disabled = false;
+            document.getElementById("sendBtn").disabled = false;
         });
+
+        function sendMessage() {
+            const input = document.getElementById("msgInput");
+            const text = input.value.trim();
+            if (text && currentRoom) {
+                // स्क्रीन पर अपना मैसेज दिखाएं
+                const msgDiv = document.getElementById("messages");
+                msgDiv.innerHTML += `<p style="color: #0070f3;"><b>आप:</b> ${text}</p>`;
+                
+                // सर्वर को मैसेज भेजें
+                socket.emit("send-msg", { room: currentRoom, text: text });
+                input.value = "";
+                msgDiv.scrollTop = msgDiv.scrollHeight; // ऑटो स्क्रॉल नीचे
+            }
+        }
 
         socket.on("receive-msg", (text) => {
             const msgDiv = document.getElementById("messages");
-            msgDiv.innerHTML += `<p><b>अजनबी:</b> ${text}</p>`;
+            msgDiv.innerHTML += `<p style="color: #ff4757;"><b>अजनबी:</b> ${text}</p>`;
+            msgDiv.scrollTop = msgDiv.scrollHeight;
         });
     </script>
 </body>
