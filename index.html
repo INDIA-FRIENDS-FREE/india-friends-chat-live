@@ -1,172 +1,54 @@
  <!DOCTYPE html>
-<html lang="en" data-lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Global Friends Chat - Talk to Strangers</title>
-    <!-- Live Socket.io Client Library -->
-    <script src="https://socket.io"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Friends Chat</title>
+    <script src="/socket.io/socket.io.js"></script>
     <style>
-        :root { 
-            --bg-color: #0b141a; 
-            --container-bg: #111b21; 
-            --header-bg: #202c33; 
-            --input-bg: #2a3942; 
-            --text-color: #e9edef; 
-            --sent-msg: #005c4b; 
-            --received-msg: #202c33; 
-            --btn-text: #111b21;
-            --chat-pattern: radial-gradient(rgba(0, 168, 132, 0.05) 2px, transparent 0);
-            --chat-pattern-size: 24px 24px;
-        }
-
-        [data-theme="light"] {
-            --bg-color: #dadbd3; 
-            --container-bg: #efeae2; 
-            --header-bg: #f0f2f5; 
-            --input-bg: #ffffff; 
-            --text-color: #111b21; 
-            --sent-msg: #d9fdd3; 
-            --received-msg: #ffffff; 
-            --btn-text: #ffffff;
-            --chat-pattern: radial-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 0);
-            --chat-pattern-size: 20px 20px;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg-color); display: flex; justify-content: center; align-items: center; height: 100vh; color: var(--text-color); transition: background 0.3s; overflow: hidden; }
-        
-        /* स्क्रीन के अंदर फिट रहने वाला कंटेनर */
-        .chat-container { width: 100%; max-width: 450px; height: 100vh; background-color: var(--container-bg); display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.3); position: relative; }
-        
-        .chat-header { background-color: var(--header-bg); padding: 12px 15px; font-weight: bold; color: #00a884; font-size: 1.1rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); flex-shrink: 0; }
-        .header-controls { display: flex; gap: 8px; }
-        .theme-btn, .lang-btn { background: transparent; border: 2px solid #00a884; color: #00a884; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition: all 0.2s; }
-        .theme-btn:hover, .lang-btn:hover { background-color: #00a884; color: var(--btn-text); }
-
-        .status-bar { background-color: rgba(0,0,0,0.2); padding: 10px; text-align: center; font-size: 0.9rem; color: #ffd27d; flex-shrink: 0; }
-        
-        /* 100% असली फिक्स्ड बैकग्राउंड एरिया */
-        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background-image: var(--chat-pattern); background-size: var(--chat-pattern-size); background-position: center; background-repeat: no-repeat; background-size: cover; }
-        
-        .message { padding: 10px 15px; border-radius: 8px; max-width: 75%; font-size: 0.95rem; box-shadow: 0 1px 2px rgba(0,0,0,0.15); line-height: 1.4; word-wrap: break-word; }
-        .message.received { background-color: var(--received-msg); align-self: flex-start; border-top-left-radius: 0; color: var(--text-color); }
-        .message.sent { background-color: var(--sent-msg); align-self: flex-end; border-top-right-radius: 0; color: var(--text-color); }
-        .message img { max-width: 100%; border-radius: 6px; margin-top: 5px; display: block; }
-        .message.system { background-color: rgba(0, 0, 0, 0.4); color: #e9edef; align-self: center; text-align: center; font-size: 0.85rem; border-radius: 6px; box-shadow: none; padding: 5px 10px; }
-        
-        /* इनपुट एरिया - जो कभी स्क्रीन के बाहर नहीं भागेगा */
-        .chat-input-area { background-color: var(--header-bg); padding: 12px 15px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; width: 100%; }
-        .chat-input { flex: 1; background-color: var(--input-bg); border: none; padding: 12px; border-radius: 8px; color: var(--text-color); outline: none; border: 1px solid rgba(0,0,0,0.1); font-size: 0.95rem; }
-        
-        .media-btn, .bg-btn { background-color: #2a3942; color: #00a884; border: 1px solid #00a884; border-radius: 8px; padding: 11px 12px; font-weight: bold; cursor: pointer; font-size: 0.85rem; white-space: nowrap; }
-        [data-theme="light"] .media-btn, [data-theme="light"] .bg-btn { background-color: #ffffff; }
-        
-        .send-btn, .next-btn { border: none; border-radius: 8px; padding: 12px 18px; font-weight: bold; cursor: pointer; transition: background 0.2s; font-size: 0.95rem; }
-        .send-btn { background-color: #00a884; color: #111b21; }
-        .send-btn:disabled, .media-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .next-btn { background-color: #007bff; color: white; }
+        body { font-family: Arial, sans-serif; text-align: center; background: #121212; color: white; padding: 20px; }
+        .chat-box { max-width: 400px; margin: 0 auto; background: #1e1e1e; padding: 20px; border-radius: 10px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: #0070f3; color: white; border: none; border-radius: 5px; margin-top: 10px; }
+        #messages { height: 200px; overflow-y: auto; border: 1px solid #333; margin: 10px 0; padding: 10px; text-align: left; }
     </style>
 </head>
 <body>
 
-<div class="chat-container">
-    <div class="chat-header">
-        <span id="titleText">Global Chat 💬</span>
-        <div class="header-controls">
-            <button class="lang-btn" id="langToggle" onclick="toggleLanguage()">🌐 हिंदी</button>
-            <button class="theme-btn" id="themeToggle" onclick="toggleTheme()">☀️ Light</button>
-        </div>
+    <div class="chat-box">
+        <h2>Welcome to Friends Chat!</h2>
+        <div id="status">सर्वर से जुड़ रहे हैं...</div>
+        <div id="messages"></div>
+        <button id="nextBtn" onclick="findStranger()">Next 📷</button>
     </div>
-    <div class="status-bar" id="statusText">Connected to Server. Click 'Next'. 📡</div>
-    <div class="chat-messages" id="chatBox">
-        <div class="message system" id="welcomeMsg">Welcome to Friends Chat! 🙏</div>
-    </div>
-    <div class="chat-input-area">
-        <button class="next-btn" id="nextBtn" onclick="findStranger()">Next</button>
-        
-        <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(this)">
-        <button class="media-btn" id="mediaBtn" onclick="document.getElementById('fileInput').click()" disabled>📎 Media</button>
-        
-        <input type="file" id="bgInput" accept="image/*" style="display: none;" onchange="changeBackgroundWallpaper(this)">
-        <button class="bg-btn" id="bgBtn" onclick="document.getElementById('bgInput').click()">🖼️ Wallpaper</button>
-        
-        <input type="text" class="chat-input" id="messageInput" placeholder="Type a message here..." disabled>
-        <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled>Send</button>
-    </div>
-</div>
 
-<script>
-    const socket = io("https://onrender.com"); 
-    let currentRoom = null;
+    <script>
+        // Render के लिए सबसे ज़रूरी बदलाव (ब्रैकेट खाली रखा है ताकि यह ऑटो-कनेक्ट हो)
+        const socket = io(); 
+        let currentRoom = null;
 
-    const translations = {
-        en: {
-            title: "Global Chat 💬",
-            welcome: "Welcome to Friends Chat! 🙏",
-            connected: "Connected to Server. Click 'Next'. 📡",
-            searching: "Searching for online strangers... 🔍",
-            connecting: "Connecting...",
-            found: "Stranger found! Start chatting. 👥",
-            userConnected: "Live user is connected!",
-            placeholder: "Type a message here...",
-            send: "Send",
-            media: "📎 Media",
-            wallpaper: "🖼️ Wallpaper"
-        },
-        hi: {
-            title: "ग्लोबल चैट 💬",
-            welcome: "फ्रेंड्स चैट में अफवाह स्वागत है! 🙏",
-            connected: "सर्वर से कनेक्टेड। 'Next' दबाएं। 📡",
-            searching: "ऑनलाइन अजनबियों की तलाश जारी है... 🔍",
-            connecting: "कनेक्ट किया जा रहा है...",
-            found: "अजनबी मिल गया! बातचीत शुरू करें। 👥",
-            userConnected: "लाइव यूज़र कनेक्ट हो चुका है!",
-            placeholder: "यहाँ संदेश लिखें...",
-            send: "भेजें",
-            media: "📎 मीडिया",
-            wallpaper: "🖼️ वॉलपेपर"
+        socket.on("connect", () => {
+            document.getElementById("status").innerText = "सर्वर से कनेक्टेड। 'Next' दबाएं।";
+        });
+
+        function findStranger() {
+            document.getElementById("messages").innerHTML = "";
+            socket.emit("find-stranger");
         }
-    };
 
-    // 100% वर्किंग वॉलपेपर फिक्स फंक्शन
-    function changeBackgroundWallpaper(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById("chatBox").style.backgroundImage = "url('" + e.target.result + "')";
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
+        socket.on("waiting-status", (msg) => {
+            document.getElementById("status").innerText = msg;
+        });
 
-    function toggleLanguage() {
-        const currentLang = document.documentElement.getAttribute("data-lang");
-        const targetLang = currentLang === "en" ? "hi" : "en";
-        document.documentElement.setAttribute("data-lang", targetLang);
-        
-        document.getElementById("langToggle").innerText = targetLang === "en" ? "🌐 हिंदी" : "🌐 English";
-        document.getElementById("titleText").innerText = translations[targetLang].title;
-        document.getElementById("messageInput").placeholder = translations[targetLang].placeholder;
-        document.getElementById("sendBtn").innerText = translations[targetLang].send;
-        document.getElementById("mediaBtn").innerText = translations[targetLang].media;
-        document.getElementById("bgBtn").innerText = translations[targetLang].wallpaper;
-        
-        let currentStatus = document.getElementById("statusText").innerText;
-        if (currentStatus.includes("Connected") || currentStatus.includes("सर्वर से")) {
-            document.getElementById("statusText").innerText = translations[targetLang].connected;
-        } else if (currentStatus.includes("Searching") || currentStatus.includes("ऑनलाइन")) {
-            document.getElementById("statusText").innerText = translations[targetLang].searching;
-        } else if (currentStatus.includes("Stranger") || currentStatus.includes("अजनबी")) {
-            document.getElementById("statusText").innerText = translations[targetLang].found;
-        }
-    }
+        socket.on("chat-start", (data) => {
+            currentRoom = data.room;
+            document.getElementById("status").innerText = "अजनबी मिल गया! चैट शुरू करें।";
+            // यहाँ आप मैसेज भेजने या इनपुट दिखाने का लॉजिक डाल सकते हैं
+        });
 
-    function toggleTheme() {
-        const currentTheme = document.documentElement.getAttribute("data-theme");
-        const targetTheme = currentTheme === "light" ? "dark" : "light";
-        document.documentElement.setAttribute("data-theme", targetTheme);
-        document.getElementById("themeToggle").innerText = targetTheme === "light" ? "🌙 Dark" : "☀️ Light";
-    }
-
-    function findStranger() {
+        socket.on("receive-msg", (text) => {
+            const msgDiv = document.getElementById("messages");
+            msgDiv.innerHTML += `<p><b>अजनबी:</b> ${text}</p>`;
+        });
+    </script>
+</body>
+</html>

@@ -1,14 +1,16 @@
-{
-  "name": "india-friends-chat-live",
+ {
+  "name": "friends-chat-app",
   "version": "1.0.0",
-  "description": "Live Chat Server",
+  "description": "Real-time chat application using Socket.io",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "cors": "^2.8.5",
     "express": "^4.19.2",
     "socket.io": "^4.7.5"
-  }
+  },
+  "author": "",
+  "license": "ISC"
+  
 }
