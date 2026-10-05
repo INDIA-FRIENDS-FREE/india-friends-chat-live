@@ -17,8 +17,10 @@ io.on("connection", (socket) => {
     socket.on("find-stranger", () => {
         if (waitingUser && waitingUser.id !== socket.id) {
             const roomName = `room-${waitingUser.id}-${socket.id}`;
+            
             waitingUser.join(roomName);
             socket.join(roomName);
+
             io.to(roomName).emit("chat-start", { room: roomName });
             waitingUser = null;
         } else {
@@ -27,14 +29,8 @@ io.on("connection", (socket) => {
         }
     });
 
-    // स्मार्ट मैसेज ट्रांसफर (यह फोटो, टेक्स्ट, व्यू-वन्स सब एक साथ भेजेगा)
     socket.on("send-msg", (data) => {
-        socket.to(data.room).emit("receive-msg", data);
-    });
-
-    // डिलीट मैसेज का नया लॉजिक 🗑️
-    socket.on("delete-msg", (data) => {
-        socket.to(data.room).emit("msg-deleted", { msgId: data.msgId });
+        socket.to(data.room).emit("receive-msg", data.text);
     });
 
     socket.on("disconnect", () => {

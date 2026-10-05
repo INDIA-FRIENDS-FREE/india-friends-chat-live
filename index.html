@@ -3,156 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚡ BlinkChat Pro</title>
+    <title>Friends Chat</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; background: #0b0f19; color: #f1f5f9; margin: 0; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 100vh; box-sizing: border-box; }
-        .container { width: 100%; max-width: 400px; height: 600px; background: #111827; border: 1px solid #1f2937; border-radius: 24px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 10px 25px rgba(0,0,0,0.5); box-sizing: border-box; }
-        .header { display: flex; justify-content: space-between; align-items: center; border-b: 1px solid #1f2937; padding-bottom: 12px; }
-        .profile { display: flex; align-items: center; gap: 10px; }
-        .avatar { width: 40px; height: 40px; border: 2px solid #06b6d4; border-radius: 50%; object-fit: cover; background: #1f2937; }
-        .status-txt { font-size: 11px; color: #94a3b8; margin: 2px 0 0 0; }
-        .theme-panel { display: flex; gap: 5px; background: #030712; padding: 4px; border-radius: 10px; border: 1px solid #1f2937; }
-        .t-btn { width: 16px; height: 16px; border-radius: 50%; border: none; cursor: pointer; }
-        .view-once-btn { font-size: 11px; background: #030712; border: 1px solid #1f2937; padding: 4px 8px; border-radius: 8px; color: #94a3b8; cursor: pointer; }
-        .messages-area { flex: 1; margin: 15px 0; overflow-y: auto; padding-right: 5px; }
-        .msg-row-me { display: flex; justify-content: flex-end; gap: 8px; align-items: flex-end; width: 100%; margin-bottom: 10px; }
-        .msg-row-stranger { display: flex; justify-content: flex-start; gap: 8px; align-items: flex-end; width: 100%; margin-bottom: 10px; }
-        .bubble-me { max-width: 70%; background: linear-gradient(135deg, #06b6d4, #2563eb); color: white; border-radius: 16px 16px 0 16px; padding: 8px 12px; font-size: 14px; word-break: break-all; }
-        .bubble-stranger { max-width: 70%; background: #030712; border: 1px solid #1f2937; color: #e2e8f0; border-radius: 16px 16px 16px 0; padding: 8px 12px; font-size: 14px; word-break: break-all; }
-        .mini-avatar { width: 24px; height: 24px; border-radius: 50%; }
-        .del-btn { font-size: 10px; color: #ef4444; background: none; border: none; cursor: pointer; display: none; }
-        .msg-row-me:hover .del-btn { display: inline; }
-        .input-box-wrapper { display: flex; gap: 8px; align-items: center; background: #030712; border: 1px solid #1f2937; border-radius: 16px; padding: 6px 12px; }
-        .input-box-wrapper input { flex: 1; background: transparent; border: none; outline: none; color: #e2e8f0; font-size: 14px; }
-        .input-box-wrapper input:disabled { opacity: 0.3; }
-        .send-button { background: #06b6d4; color: #030712; font-weight: bold; border: none; padding: 6px 14px; border-radius: 10px; cursor: pointer; font-size: 12px; }
-        .send-button:disabled { opacity: 0.2; cursor: default; }
-        .next-btn { width: 100%; background: #1f2937; color: #e2e8f0; border: 1px solid #374151; font-weight: bold; padding: 10px; border-radius: 12px; cursor: pointer; margin-top: 10px; font-size: 14px; }
-    </style>
+        body { font-family: Arial, sans-serif; text-align: center; background: #0b0f19; color: white; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; box-sizing: border-box; }
+        .chat-box { width: 100%; max-width: 400px; height: 550px; background: #111827; border: 1px solid #1f2937; padding: 20px; border-radius: 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 10px 25px rgba(0,0,0,0.4); box-sizing: border-box; }
+        h2 { margin-top: 0; color: #06b6d4; font-size: 20px; }
+        #status { font-size: 12px; color: #94a3b8; margin-bottom: 10px; }
+        #messages { flex: 1; overflow-y: auto; border: 1px solid #1f2937; margin: 10px 0; padding: 10px; text-align: left; background: #030712; border-radius: 10px; }
+        .input-area { display: flex; gap: 8px; margin-top: 5px; }
+        #msgInput { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #1f2937; background: #1f2937; color: white; outline: none; font-size: 14px; }
+        #msgInput:disabled { opacity: 0.3; }
+        .send-btn { padding: 10px 16px; background: #06b6d4; color: #030712; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; font-size: 14px; }
+        .send-btn:disabled { opacity: 0.2; cursor: default; }
+        .next-btn { width: 100%; padding: 12px; font-size: 14px; font-weight: bold; cursor: pointer; background: #1f2937; color: #e2e8f0; border: 1px solid #374151; border-radius: 12px; margin-top: 10px; }
+        .next-btn:hover { background: #374151; }
+        p { margin: 5px 0; font-size: 14px; }
+    </script>
 </head>
 <body>
 
-    <div class="container">
-        <div class="header">
-            <div class="profile">
-                <img id="userDp" src="https://dicebear.com" class="avatar" />
-                <div>
-                    <span style="font-size:14px; font-weight:bold;">You (Me)</span>
-                    <p id="status" class="status-txt">Connecting...</p>
-                </div>
-            </div>
-
-            <div style="display:flex; align-items:center; gap: 8px;">
-                <button id="viewOnceBtn" onclick="toggleViewOnce()" class="view-once-btn">
-                    ⏱️ View Once: <span id="viewOnceStatus" style="color:#ef4444; font-weight:bold;">OFF</span>
-                </button>
-                <div class="theme-panel">
-                    <button onclick="changeTheme('cyber')" class="t-btn" style="background:#06b6d4;"></button>
-                    <button onclick="changeTheme('mint')" class="t-btn" style="background:#10b981;"></button>
-                    <button onclick="changeTheme('purple')" class="t-btn" style="background:#8b5cf6;"></button>
-                </div>
-            </div>
+    <div class="chat-box">
+        <h2>⚡ Friends Chat</h2>
+        <div id="status">Connecting to server...</div>
+        <div id="messages"></div>
+        
+        <div class="input-area">
+            <input type="text" id="msgInput" placeholder="Type a message..." disabled onkeypress="if(event.key === 'Enter') sendMessage()" />
+            <button id="sendBtn" class="send-btn" onclick="sendMessage()" disabled>Send</button>
         </div>
-
-        <div id="messages" class="messages-area">
-            <div style="text-align:center; color:#64748b; font-size:12px; margin-top:80px;">Tap 'Find Next Stranger' to start!</div>
-        </div>
-
-        <div>
-            <div class="input-box-wrapper">
-                <label for="picInput" style="cursor:pointer; font-size:16px; padding-right:5px;">
-                    📎 <input type="file" id="picInput" accept="image/*" style="display:none;" onchange="sendPicture(event)" disabled />
-                </label>
-                <input type="text" id="msgInput" placeholder="Type a message..." disabled onkeypress="if(event.key === 'Enter') sendMessage()" />
-                <button id="sendBtn" onclick="sendMessage()" class="send-button" disabled>Send</button>
-            </div>
-            <button id="nextBtn" onclick="findStranger()" class="next-btn">Find Next Stranger 🚀</button>
-        </div>
+        
+        <button id="nextBtn" class="next-btn" onclick="findStranger()">Find Next Stranger 🚀</button>
     </div>
 
     <script>
         const socket = io(); 
         let currentRoom = null;
-        let base64Dp = "https://dicebear.com";
-        let viewOnceActive = false;
 
-        const themes = {
-            cyber: { body: '#0b0f19', box: '#111827', btn: '#06b6d4' },
-            mint: { body: '#09090b', box: '#18181b', btn: '#10b981' },
-            purple: { body: '#0a0a0a', box: '#171717', btn: '#8b5cf6' }
-        };
-
-        function changeTheme(tName) {
-            const t = themes[tName];
-            document.body.style.background = t.body;
-            document.querySelector('.container').style.background = t.box;
-            document.getElementById('userDp').style.borderColor = t.btn;
-            document.getElementById('sendBtn').style.background = t.btn;
-        }
-
-        function toggleViewOnce() {
-            viewOnceActive = !viewOnceActive;
-            const st = document.getElementById("viewOnceStatus");
-            if(viewOnceActive) { st.innerText = "ON"; st.style.color = "#fbbf24"; }
-            else { st.innerText = "OFF"; st.style.color = "#ef4444"; }
-        }
-
-        socket.on("connect", () => { 
-            document.getElementById("status").innerHTML = '<span style="color:#10b981">● Online</span>'; 
+        socket.on("connect", () => {
+            document.getElementById("status").innerHTML = '<span style="color:#10b981">● Connected</span> • Tap button to match';
         });
 
         function findStranger() {
-            document.getElementById("messages").innerHTML = `<div style="text-align:center; color:#64748b; font-size:12px; margin-top:40px;">Searching...</div>`;
-            document.getElementById("msgInput").disabled = true; 
-            document.getElementById("sendBtn").disabled = true; 
-            document.getElementById("picInput").disabled = true;
+            document.getElementById("messages").innerHTML = "";
+            document.getElementById("msgInput").disabled = true;
+            document.getElementById("sendBtn").disabled = true;
             socket.emit("find-stranger");
         }
 
-        socket.on("chat-start", (data) => {
-            currentRoom = data.room;
-            document.getElementById("status").innerHTML = '<span style="color:#06b6d4">⚡ Matched</span>';
-            document.getElementById("msgInput").disabled = false; 
-            document.getElementById("sendBtn").disabled = false; 
-            document.getElementById("picInput").disabled = false;
-            document.getElementById("messages").innerHTML = `<div style="text-align:center; color:#64748b; font-size:11px; background:rgba(0,0,0,0.3); padding:4px; border-radius:8px;">Connected in secure room.</div>`;
+        socket.on("waiting-status", (msg) => {
+            document.getElementById("status").innerHTML = `<span style="color:#fbbf24 animate-pulse">🔍 Searching...</span>`;
         });
 
-        function sendPicture(event) {
-            const file = event.target.files[0];
-            if (file && currentRoom) {
-                const reader = new FileReader();
-                reader.onload = function() {
-                    const msgId = 'msg-' + Date.now();
-                    const msgDiv = document.getElementById("messages");
-                    let content = `<img src="${reader.result}" style="max-width:140px; border-radius:8px;" />`;
-                    if(viewOnceActive) content = `<div style="color:#fbbf24; font-size:12px;">⏱️ Sent View Once Photo</div>`;
+        socket.on("chat-start", (data) => {
+            currentRoom = data.room;
+            document.getElementById("status").innerHTML = '<span style="color:#06b6d4">⚡ Matched! Chat started</span>';
+            document.getElementById("msgInput").disabled = false;
+            document.getElementById("sendBtn").disabled = false;
+            document.getElementById("msgInput").focus();
+            
+            document.getElementById("messages").innerHTML = `<div style="text-align:center; color:#64748b; font-size:11px; background:rgba(0,0,0,0.2); padding:4px; border-radius:6px;">Stranger connected.</div>`;
+        });
 
-                    msgDiv.innerHTML += `
-                        <div id="${msgId}" class="msg-row-me">
-                            <button onclick="deleteMessage('${msgId}')" class="del-btn">🗑️ Delete</button>
-                            <div class="bubble-me">${content}</div>
-                            <img src="${base64Dp}" class="mini-avatar" />
-                        </div>`;
-                    socket.emit("send-msg", { room: currentRoom, msgId: msgId, dp: base64Dp, isPic: true, picData: reader.result, viewOnce: viewOnceActive });
-                    msgDiv.scrollTop = msgDiv.scrollHeight;
-                }
-                reader.readAsDataURL(file);
+        function sendMessage() {
+            const input = document.getElementById("msgInput");
+            const text = input.value.trim();
+            if (text && currentRoom) {
+                const msgDiv = document.getElementById("messages");
+                msgDiv.innerHTML += `<p style="color: #06b6d4; text-align: right;"><b>You:</b> ${text}</p>`;
+                
+                socket.emit("send-msg", { room: currentRoom, text: text });
+                input.value = "";
+                msgDiv.scrollTop = msgDiv.scrollHeight;
             }
         }
 
-        function sendMessage() {
-            const input = document.getElementById("msgInput"); 
-            const text = input.value.trim();
-            if (text && currentRoom) {
-                const msgId = 'msg-' + Date.now(); 
-                const msgDiv = document.getElementById("messages");
-                msgDiv.innerHTML += `
-                    <div id="${msgId}" class="msg-row-me">
-                        <button onclick="deleteMessage('${msgId}')" class="del-btn">🗑️ Delete</button>
-                        <div class="bubble-me">${text}</div>
-                        <img src="${base64Dp}" class="mini-avatar" />
-                    </div>`;
-                socket.emit("send-msg", { room: currentRoom, msgId: msgId, text: text, dp: base64Dp, isPic: false });
-                input.value = ""; 
+        socket.on("receive-msg", (text) => {
+            const msgDiv = document.getElementById("messages");
+            msgDiv.innerHTML += `<p style="color: #e2e8f0; text-align: left;"><b>Stranger:</b> ${text}</p>`;
+            msgDiv.scrollTop = msgDiv.scrollHeight;
+        });
+    </script>
+</body>
+</html>
