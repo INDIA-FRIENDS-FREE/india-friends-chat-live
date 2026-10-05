@@ -6,11 +6,21 @@
     <title>Friends Chat</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background-color: #0b0f19; color: white; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 90vh; margin: 0; }
+        /* स्मूथ ट्रांज़िशन के साथ बैकग्राउंड बदलने के लिए */
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #0b0f19; color: white; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 90vh; margin: 0; box-sizing: border-box; transition: background-color 0.4s ease; }
         .chat-box { width: 100%; max-width: 400px; height: 500px; background-color: #111827; border: 1px solid #1f2937; padding: 20px; border-radius: 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
-        h2 { margin-top: 0; color: #06b6d4; font-size: 20px; }
+        
+        /* टॉप बार जहां टाइटल और थीम बटन हैं */
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        h2 { margin: 0; color: #06b6d4; font-size: 20px; }
+        
+        /* थीम बदलने वाले सुंदर गोल बटन 🎨 */
+        .theme-panel { display: flex; gap: 6px; }
+        .theme-btn { width: 18px; height: 18px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; transition: transform 0.2s; }
+        .theme-btn:hover { transform: scale(1.2); }
+        
         #status { font-size: 12px; color: #94a3b8; margin-bottom: 10px; }
-        #messages { flex: 1; overflow-y: auto; border: 1px solid #1f2937; margin: 10px 0; padding: 10px; text-align: left; background-color: #030712; border-radius: 10px; height: 250px; }
+        #messages { flex: 1; overflow-y: auto; border: 1px solid #1f2937; margin: 5px 0; padding: 10px; text-align: left; background-color: #030712; border-radius: 10px; height: 250px; }
         .input-area { display: flex; gap: 8px; margin-top: 5px; }
         #msgInput { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #1f2937; background-color: #1f2937; color: white; outline: none; font-size: 14px; }
         .send-btn { padding: 10px 16px; background-color: #06b6d4; color: #030712; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; font-size: 14px; }
@@ -21,12 +31,21 @@
 <body>
 
     <div class="chat-box">
-        <h2>⚡ Friends Chat</h2>
+        <!-- टॉप बार जिसमें थीम चेंजर्स हैं -->
+        <div class="top-bar">
+            <h2>⚡ Friends Chat</h2>
+            <div class="theme-panel">
+                <button onclick="changeBackground('#0b0f19')" class="theme-btn" style="background-color: #0b0f19;" title="Dark Blue"></button>
+                <button onclick="changeBackground('#1e1b4b')" class="theme-btn" style="background-color: #1e1b4b;" title="Deep Indigo"></button>
+                <button onclick="changeBackground('#0f172a')" class="theme-btn" style="background-color: #0f172a;" title="Slate Black"></button>
+            </div>
+        </div>
+
         <div id="status">Connecting to server...</div>
         <div id="messages"></div>
         
         <div class="input-area">
-            <input type="text" id="msgInput" placeholder="Type a message..." disabled />
+            <input type="text" id="msgInput" placeholder="Type a message..." disabled onkeypress="if(event.key === 'Enter') sendMessage()" />
             <button id="sendBtn" class="send-btn" onclick="sendMessage()" disabled>Send</button>
         </div>
         
@@ -36,6 +55,11 @@
     <script>
         const socket = io(); 
         let currentRoom = null;
+
+        // 🎨 बैकग्राउंड चेंज करने का आसान फंक्शन
+        function changeBackground(color) {
+            document.body.style.backgroundColor = color;
+        }
 
         socket.on("connect", () => {
             document.getElementById("status").innerHTML = '<span style="color:#10b981">● Connected</span> • Ready to chat';
