@@ -1,218 +1,19 @@
- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚡ BlinkChat Mega Pro</title>
-    <script src="/socket.io/socket.io.js"></script>
-    <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: #020617; 
-            color: #f8fafc; 
-            margin: 0; 
-            padding: 20px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            min-height: 100vh; 
-            box-sizing: border-box; 
-            transition: all 0.4s ease;
-        }
-
-        /* सूनापन दूर करने के लिए प्रीमियम नियन कंटेनर */
-        .chat-box { 
-            width: 100%; 
-            max-width: 420px; 
-            height: 620px; 
-            background: rgba(30, 41, 59, 0.7); 
-            border: 1px solid rgba(6, 182, 212, 0.2); 
-            backdrop-filter: blur(16px);
-            padding: 20px; 
-            border-radius: 28px; 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: space-between; 
-            box-shadow: 0 0 30px rgba(6, 182, 212, 0.2); 
-            box-sizing: border-box; 
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-b: 1px solid rgba(255, 255, 255, 0.05);
-            padding-bottom: 8px;
-        }
-
-        h2 { 
-            margin: 0; 
-            font-size: 22px; 
-            font-weight: 800;
-            background: linear-gradient(to right, #22d3ee, #818cf8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        /* टॉप फीचर्स बटन्स का पैनल ⚙️ */
-        .controls-panel {
-            display: flex;
-            gap: 8px;
-        }
-
-        .action-icon-btn {
-            background: rgba(15, 23, 42, 0.8);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: white;
-            padding: 6px 10px;
-            font-size: 12px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .action-icon-btn:hover {
-            border-color: #22d3ee;
-            box-shadow: 0 0 8px rgba(6, 182, 212, 0.4);
-        }
-
-        /* यूजरनेम डालने का नया इनपुट बॉक्स 👤 */
-        .name-wrapper {
-            margin: 8px 0;
-            display: flex;
-            gap: 6px;
-        }
-
-        .name-wrapper input {
-            flex: 1;
-            background: rgba(3, 7, 18, 0.6);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 10px;
-            padding: 6px 12px;
-            color: white;
-            font-size: 12px;
-            outline: none;
-        }
-
-        #messages { 
-            flex: 1; 
-            overflow-y: auto; 
-            border: 1px solid rgba(255, 255, 255, 0.05); 
-            margin: 8px 0; 
-            padding: 12px; 
-            text-align: left; 
-            background: rgba(3, 7, 18, 0.6); 
-            border-radius: 16px; 
-        }
-
-        .input-area { 
-            display: flex; 
-            gap: 8px; 
-            background: rgba(15, 23, 42, 0.8);
-            padding: 6px;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        #msgInput { 
-            flex: 1; 
-            padding: 8px 12px; 
-            border: none;
-            background: transparent; 
-            color: white; 
-            outline: none; 
-            font-size: 14px; 
-        }
-
-        .send-btn { 
-            padding: 8px 16px; 
-            background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); 
-            color: #030712; 
-            font-weight: 700; 
-            border: none; 
-            border-radius: 12px; 
-            cursor: pointer; 
-            font-size: 13px; 
-        }
-
-        .send-btn:disabled { opacity: 0.2; color: #64748b; }
-
-        .next-btn { 
-            width: 100%; 
-            padding: 12px; 
-            font-size: 14px; 
-            font-weight: 700; 
-            cursor: pointer; 
-            background: rgba(30, 41, 59, 0.5); 
-            color: #e2e8f0; 
-            border: 1px solid rgba(255, 255, 255, 0.1); 
-            border-radius: 14px; 
-        }
-
-        .next-btn:hover { background: rgba(51, 65, 85, 0.8); border-color: #22d3ee; }
-
-        .msg-p { margin: 6px 0; font-size: 14px; display: flex; flex-direction: column; }
-        .msg-me { align-items: flex-end; }
-        .msg-stranger { align-items: flex-start; }
-        
-        .bubble { padding: 8px 12px; border-radius: 14px; max-width: 75%; word-break: break-all; }
-        .b-me { background: linear-gradient(135deg, #06b6d4 0%, #2563eb 100%); color: white; border-bottom-right-radius: 2px; }
-        .b-stranger { background: #1e293b; color: #f1f5f9; border-top-left-radius: 2px; }
-        
-        .sys-msg { text-align: center; color: #64748b; font-size: 11px; padding: 4px; }
-    </style>
-</head>
-<body>
-
-    <div class="chat-box">
-        <!-- Header area with NEW buttons -->
-        <div class="header">
-            <div>
-                <h2>⚡ BlinkChat</h2>
-                <div id="status" style="font-size:10px; color:#94a3b8; margin: 2px 0 0 0;">Connecting...</div>
-            </div>
-            
-            <!-- यहाँ जुड़े हैं एक्स्ट्रा बटन्स ⚙️ -->
-            <div class="controls-panel">
-                <button id="soundBtn" onclick="toggleSound()" class="action-icon-btn" title="Toggle Sound">🔊 Sound</button>
-                <button onclick="togglePinkTheme()" class="action-icon-btn" title="Change Neon Accent">🎨 Tint</button>
-            </div>
-        </div>
-
-        <!-- Username Input Box -->
-        <div class="name-wrapper">
-            <input type="text" id="usernameInput" placeholder="Set your nickname (Optional)..." value="You" />
-        </div>
-        
-        <div id="messages">
-            <div style="text-align:center; color:#475569; font-size:12px; margin-top:120px;">
-                Tap 'Find Next Stranger' to start!
-            </div>
-        </div>
-        
-        <div>
-            <div class="input-area">
-                <input type="text" id="msgInput" placeholder="Write a message..." disabled onkeypress="if(event.key === 'Enter') sendMessage()" />
-                <button id="sendBtn" class="send-btn" onclick="sendMessage()" disabled>Send</button>
-            </div>
-            <button id="nextBtn" class="next-btn" style="margin-top: 10px;" onclick="findStranger()">Find Next Stranger 🚀</button>
-        </div>
-    </div>
-
-    <script>
-        const socket = io(); 
+     <script>
+        // रेलवे के पोर्ट और प्रोटोकॉल को जबरदस्ती जोड़ने का अचूक कोड
+        const socket = io(window.location.origin, {
+            transports: ['websocket', 'polling']
+        }); 
         let currentRoom = null;
         let soundEnabled = true;
         let pinkActive = false;
 
-        // इन-बिल्ट ऑडियो जनरेटर (बिना किसी बाहरी फाइल के बीप साउंड) 🔊
         function playBeep() {
             if (!soundEnabled) return;
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
             osc.type = "sine";
-            osc.frequency.value = 587.33; // Premium D tone
+            osc.frequency.value = 587.33;
             gain.gain.setValueAtTime(0.08, ctx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.15);
             osc.connect(gain); gain.connect(ctx.destination);
@@ -231,7 +32,6 @@
                 document.body.style.background = "#0f051d";
                 box.style.borderColor = "rgba(236, 72, 153, 0.3)";
                 box.style.boxShadow = "0 0 30px rgba(236, 72, 153, 0.2)";
-                document.getElementById('nextBtn').style.hoverBorderColor = "#ec4899";
             } else {
                 document.body.style.background = "#020617";
                 box.style.borderColor = "rgba(6, 182, 212, 0.2)";
@@ -261,7 +61,7 @@
             document.getElementById("sendBtn").disabled = false;
             document.getElementById("msgInput").focus();
             document.getElementById("messages").innerHTML = '<div class="sys-msg">🔒 Secured room created. Chat started.</div>';
-            playBeep(); // मैच होने पर बीप 🔊
+            playBeep();
         });
 
         function sendMessage() {
@@ -271,3 +71,18 @@
             const text = input.value.trim();
             
             if (text && currentRoom) {
+                const msgDiv = document.getElementById("messages");
+                msgDiv.innerHTML += `<div class="msg-p msg-me"><span style="font-size:10px; color:#64748b; margin-bottom:2px;">${myName}</span><div class="bubble b-me">${text}</div></div>`;
+                socket.emit("send-msg", { room: currentRoom, text: text });
+                input.value = "";
+                msgDiv.scrollTop = msgDiv.scrollHeight;
+            }
+        }
+
+        socket.on("receive-msg", (text) => {
+            const msgDiv = document.getElementById("messages");
+            msgDiv.innerHTML += `<div class="msg-p msg-stranger"><span style="font-size:10px; color:#64748b; margin-bottom:2px;">Stranger</span><div class="bubble b-stranger">${text}</div></div>`;
+            msgDiv.scrollTop = msgDiv.scrollHeight;
+            playBeep();
+        });
+    </script>
