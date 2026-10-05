@@ -7,7 +7,6 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// HTML फाइलों को सर्व करने के लिए
 app.use(express.static(path.join(__dirname)));
 
 let waitingUser = null;
@@ -17,27 +16,27 @@ io.on("connection", (socket) => {
 
     socket.on("find-stranger", () => {
         if (waitingUser && waitingUser.id !== socket.id) {
-            // अगर कोई पहले से इंतज़ार कर रहा है, तो दोनों को रूम में जोड़ो
             const roomName = `room-${waitingUser.id}-${socket.id}`;
-            
             waitingUser.join(roomName);
             socket.join(roomName);
-
             io.to(roomName).emit("chat-start", { room: roomName });
             waitingUser = null;
         } else {
-            // अगर कोई नहीं है, तो इसे वेटिंग में डालो
             waitingUser = socket;
             socket.emit("waiting-status", "अजनबियों की तलाश जारी है...");
         }
     });
 
-    // जब कोई मैसेज भेजेगा
+    // स्मार्ट मैसेज ट्रांसफर (यह फोटो, टेक्स्ट, व्यू-वन्स सब एक साथ भेजेगा)
     socket.on("send-msg", (data) => {
-        socket.to(data.room).emit("receive-msg", data.text);
+        socket.to(data.room).emit("receive-msg", data);
     });
 
-    // जब कोई डिस्कनेक्ट होगा
+    // डिलीट मैसेज का नया लॉजिक 🗑️
+    socket.on("delete-msg", (data) => {
+        socket.to(data.room).emit("msg-deleted", { msgId: data.msgId });
+    });
+
     socket.on("disconnect", () => {
         console.log("यूज़र चला गया: " + socket.id);
         if (waitingUser && waitingUser.id === socket.id) {
@@ -46,8 +45,7 @@ io.on("connection", (socket) => {
     });
 });
 
-// Render के लिए पोर्ट सेटिंग (लाइन 64 जो ब्लॉक कर रही थी, उसे फिक्स कर दिया है)
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`असली बैकएंड सर्वर चालू है पोर्ट: ${PORT}`);
+    console.log(`सर्वर चालू है पोर्ट: ${PORT}`);
 });
