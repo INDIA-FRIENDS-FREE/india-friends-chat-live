@@ -1,33 +1,70 @@
  <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free Friends Chat</title>
+    <title>⚡ BlinkChat - Connect Instantly</title>
     <script src="/socket.io/socket.io.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; background: #121212; color: white; padding: 20px; }
-        .chat-box { max-width: 400px; margin: 0 auto; background: #1e1e1e; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: #0070f3; color: white; border: none; border-radius: 5px; margin-top: 10px; }
-        #messages { height: 250px; overflow-y: auto; border: 1px solid #333; margin: 10px 0; padding: 10px; text-align: left; background: #111; border-radius: 5px; }
-        .input-area { display: flex; gap: 5px; margin-top: 10px; }
-        #msgInput { flex: 1; padding: 10px; border-radius: 5px; border: 1px solid #333; background: #222; color: white; }
-    </style>
+    <!-- Tailwind CSS for modern styling -->
+    <script src="https://tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center font-sans antialiased selection:bg-cyan-500 selection:text-white p-4">
 
-    <div class="chat-box">
-        <h2>Welcome to Friends Chat!</h2>
-        <div id="status">सर्वर से जुड़ रहे हैं...</div>
-        <div id="messages"></div>
+    <!-- Glowing Background Effect -->
+    <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-1/4 left-1/2 -translate-x-1/2 translate-y-1/2 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <!-- Main Container -->
+    <div class="relative w-full max-w-md bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-3xl shadow-2xl p-6 flex flex-col h-[600px] justify-between">
         
-        <!-- मैसेज टाइप करने की जगह (जो पहले मिसिंग थी) -->
-        <div class="input-area">
-            <input type="text" id="msgInput" placeholder="मैसेज टाइप करें..." disabled />
-            <button id="sendBtn" onclick="sendMessage()" disabled>Send</button>
+        <!-- Header -->
+        <div class="text-center border-b border-slate-800/60 pb-4">
+            <h1 class="text-2xl font-black bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent tracking-tight">
+                ⚡ BlinkChat
+            </h1>
+            <p id="status" class="text-xs font-medium text-slate-400 mt-1 transition-all duration-300">
+                Connecting to secure network...
+            </p>
         </div>
-        
-        <button id="nextBtn" onclick="findStranger()">Next 📷</button>
+
+        <!-- Chat Screen / Messages Area -->
+        <div id="messages" class="flex-1 my-4 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent text-sm">
+            <!-- Messages will pop up here dynamically -->
+        </div>
+
+        <!-- Action Panel -->
+        <div class="space-y-4">
+            <!-- Chat Input Area -->
+            <div class="flex gap-2 items-center bg-slate-950/60 border border-slate-800 rounded-2xl p-2 focus-within:border-cyan-500/50 transition-all duration-300">
+                <input 
+                    type="text" 
+                    id="msgInput" 
+                    placeholder="Type your message here..." 
+                    class="flex-1 bg-transparent border-none outline-none text-slate-200 placeholder-slate-600 px-2 text-sm disabled:opacity-40"
+                    disabled 
+                    onkeypress="if(event.key === 'Enter') sendMessage()"
+                />
+                <button 
+                    id="sendBtn" 
+                    onclick="sendMessage()" 
+                    class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold text-sm px-4 py-2 rounded-xl hover:opacity-90 active:scale-95 transition-all duration-200 shadow-lg shadow-cyan-500/20 disabled:opacity-30 disabled:scale-100 disabled:shadow-none"
+                    disabled
+                >
+                    Send
+                </button>
+            </div>
+
+            <!-- Next Button / Controls -->
+            <button 
+                id="nextBtn" 
+                onclick="findStranger()" 
+                class="w-full bg-slate-800/80 hover:bg-slate-800 text-slate-200 border border-slate-700/60 font-bold py-3 px-4 rounded-2xl active:scale-[0.99] transition-all duration-200 flex items-center justify-center gap-2 group shadow-xl"
+            >
+                <span>Find Next Stranger</span>
+                <span class="group-hover:translate-x-0.5 transition-transform">🚀</span>
+            </button>
+        </div>
+
     </div>
 
     <script>
@@ -35,46 +72,73 @@
         let currentRoom = null;
 
         socket.on("connect", () => {
-            document.getElementById("status").innerText = "सर्वर से कनेक्टेड। 'Next' दबाएं।";
+            document.getElementById("status").innerHTML = '<span class="text-emerald-400">● Connected</span> • Tap button to find match';
         });
 
         function findStranger() {
-            document.getElementById("messages").innerHTML = "";
+            const msgDiv = document.getElementById("messages");
+            msgDiv.innerHTML = `
+                <div class="flex justify-center my-4">
+                    <span class="bg-slate-950/80 border border-slate-800/80 text-xs px-3 py-1.5 rounded-full text-slate-500 animate-pulse">
+                        Clearing previous chat screen...
+                    </span>
+                </div>`;
             document.getElementById("msgInput").disabled = true;
             document.getElementById("sendBtn").disabled = true;
             socket.emit("find-stranger");
         }
 
         socket.on("waiting-status", (msg) => {
-            document.getElementById("status").innerText = msg;
+            document.getElementById("status").innerHTML = `<span class="text-amber-400 animate-pulse">🔍 Searching...</span> Looking for someone online`;
         });
 
         socket.on("chat-start", (data) => {
             currentRoom = data.room;
-            document.getElementById("status").innerText = "अजनबी मिल गया! चैट शुरू करें।";
-            // अजनबी मिलते ही इनपुट और सेंड बटन चालू हो जाएंगे
+            document.getElementById("status").innerHTML = '<span class="text-cyan-400 animate-bounce">⚡ Matched!</span> You are now talking to a stranger';
+            
             document.getElementById("msgInput").disabled = false;
             document.getElementById("sendBtn").disabled = false;
+            document.getElementById("msgInput").focus();
+
+            const msgDiv = document.getElementById("messages");
+            msgDiv.innerHTML = `
+                <div class="flex justify-center my-2">
+                    <span class="bg-cyan-500/10 border border-cyan-500/20 text-[11px] font-semibold px-3 py-1 rounded-full text-cyan-400 tracking-wide uppercase">
+                        Stranger Connected Successfully
+                    </span>
+                </div>`;
         });
 
         function sendMessage() {
             const input = document.getElementById("msgInput");
             const text = input.value.trim();
             if (text && currentRoom) {
-                // स्क्रीन पर अपना मैसेज दिखाएं
                 const msgDiv = document.getElementById("messages");
-                msgDiv.innerHTML += `<p style="color: #0070f3;"><b>आप:</b> ${text}</p>`;
                 
-                // सर्वर को मैसेज भेजें
+                // Beautiful Self Message Bubble
+                msgDiv.innerHTML += `
+                    <div class="flex justify-end w-full animate-fade-in">
+                        <div class="max-w-[75%] bg-gradient-to-br from-cyan-500 to-blue-600 text-white rounded-2xl rounded-tr-none px-4 py-2.5 shadow-md shadow-cyan-950/20 break-words font-medium">
+                            ${text}
+                        </div>
+                    </div>`;
+                
                 socket.emit("send-msg", { room: currentRoom, text: text });
                 input.value = "";
-                msgDiv.scrollTop = msgDiv.scrollHeight; // ऑटो स्क्रॉल नीचे
+                msgDiv.scrollTop = msgDiv.scrollHeight;
             }
         }
 
         socket.on("receive-msg", (text) => {
             const msgDiv = document.getElementById("messages");
-            msgDiv.innerHTML += `<p style="color: #ff4757;"><b>अजनबी:</b> ${text}</p>`;
+            
+            // Beautiful Stranger Message Bubble
+            msgDiv.innerHTML += `
+                <div class="flex justify-start w-full animate-fade-in">
+                    <div class="max-w-[75%] bg-slate-950 border border-slate-800 text-slate-200 rounded-2xl rounded-tl-none px-4 py-2.5 shadow-md break-words font-medium">
+                        ${text}
+                    </div>
+                </div>`;
             msgDiv.scrollTop = msgDiv.scrollHeight;
         });
     </script>
