@@ -12,11 +12,11 @@ app.use(express.static(path.join(__dirname)));
 let waitingUser = null;
 
 io.on("connection", (socket) => {
-    console.log("यूज़र जुड़ गया: " + socket.id);
+    console.log("User connected: " + socket.id);
 
     socket.on("find-stranger", () => {
         if (waitingUser && waitingUser.id !== socket.id) {
-            const roomName = `room-${waitingUser.id}-${socket.id}`;
+            const roomName = "room-" + waitingUser.id + "-" + socket.id;
             
             waitingUser.join(roomName);
             socket.join(roomName);
@@ -25,7 +25,7 @@ io.on("connection", (socket) => {
             waitingUser = null;
         } else {
             waitingUser = socket;
-            socket.emit("waiting-status", "अजनबियों की तलाश जारी है...");
+            socket.emit("waiting-status", "searching");
         }
     });
 
@@ -34,7 +34,7 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", () => {
-        console.log("यूज़र चला गया: " + socket.id);
+        console.log("User disconnected: " + socket.id);
         if (waitingUser && waitingUser.id === socket.id) {
             waitingUser = null;
         }
@@ -43,5 +43,5 @@ io.on("connection", (socket) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`सर्वर चालू है पोर्ट: ${PORT}`);
+    console.log("Server running on port " + PORT);
 });

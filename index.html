@@ -6,20 +6,17 @@
     <title>Friends Chat</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background: #0b0f19; color: white; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; box-sizing: border-box; }
-        .chat-box { width: 100%; max-width: 400px; height: 550px; background: #111827; border: 1px solid #1f2937; padding: 20px; border-radius: 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 10px 25px rgba(0,0,0,0.4); box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #0b0f19; color: white; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 90vh; margin: 0; }
+        .chat-box { width: 100%; max-width: 400px; height: 500px; background-color: #111827; border: 1px solid #1f2937; padding: 20px; border-radius: 20px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
         h2 { margin-top: 0; color: #06b6d4; font-size: 20px; }
         #status { font-size: 12px; color: #94a3b8; margin-bottom: 10px; }
-        #messages { flex: 1; overflow-y: auto; border: 1px solid #1f2937; margin: 10px 0; padding: 10px; text-align: left; background: #030712; border-radius: 10px; }
+        #messages { flex: 1; overflow-y: auto; border: 1px solid #1f2937; margin: 10px 0; padding: 10px; text-align: left; background-color: #030712; border-radius: 10px; height: 250px; }
         .input-area { display: flex; gap: 8px; margin-top: 5px; }
-        #msgInput { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #1f2937; background: #1f2937; color: white; outline: none; font-size: 14px; }
-        #msgInput:disabled { opacity: 0.3; }
-        .send-btn { padding: 10px 16px; background: #06b6d4; color: #030712; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; font-size: 14px; }
-        .send-btn:disabled { opacity: 0.2; cursor: default; }
-        .next-btn { width: 100%; padding: 12px; font-size: 14px; font-weight: bold; cursor: pointer; background: #1f2937; color: #e2e8f0; border: 1px solid #374151; border-radius: 12px; margin-top: 10px; }
-        .next-btn:hover { background: #374151; }
+        #msgInput { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #1f2937; background-color: #1f2937; color: white; outline: none; font-size: 14px; }
+        .send-btn { padding: 10px 16px; background-color: #06b6d4; color: #030712; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; font-size: 14px; }
+        .next-btn { width: 100%; padding: 12px; font-size: 14px; font-weight: bold; cursor: pointer; background-color: #1f2937; color: #e2e8f0; border: 1px solid #374151; border-radius: 12px; margin-top: 10px; }
         p { margin: 5px 0; font-size: 14px; }
-    </script>
+    </style>
 </head>
 <body>
 
@@ -29,7 +26,7 @@
         <div id="messages"></div>
         
         <div class="input-area">
-            <input type="text" id="msgInput" placeholder="Type a message..." disabled onkeypress="if(event.key === 'Enter') sendMessage()" />
+            <input type="text" id="msgInput" placeholder="Type a message..." disabled />
             <button id="sendBtn" class="send-btn" onclick="sendMessage()" disabled>Send</button>
         </div>
         
@@ -41,7 +38,7 @@
         let currentRoom = null;
 
         socket.on("connect", () => {
-            document.getElementById("status").innerHTML = '<span style="color:#10b981">● Connected</span> • Tap button to match';
+            document.getElementById("status").innerHTML = '<span style="color:#10b981">● Connected</span> • Ready to chat';
         });
 
         function findStranger() {
@@ -52,17 +49,16 @@
         }
 
         socket.on("waiting-status", (msg) => {
-            document.getElementById("status").innerHTML = `<span style="color:#fbbf24 animate-pulse">🔍 Searching...</span>`;
+            document.getElementById("status").innerHTML = '<span style="color:#fbbf24">🔍 Searching for someone...</span>';
         });
 
         socket.on("chat-start", (data) => {
             currentRoom = data.room;
-            document.getElementById("status").innerHTML = '<span style="color:#06b6d4">⚡ Matched! Chat started</span>';
+            document.getElementById("status").innerHTML = '<span style="color:#06b6d4">⚡ Matched!</span>';
             document.getElementById("msgInput").disabled = false;
             document.getElementById("sendBtn").disabled = false;
             document.getElementById("msgInput").focus();
-            
-            document.getElementById("messages").innerHTML = `<div style="text-align:center; color:#64748b; font-size:11px; background:rgba(0,0,0,0.2); padding:4px; border-radius:6px;">Stranger connected.</div>`;
+            document.getElementById("messages").innerHTML = '<div style="text-align:center; color:#64748b; font-size:11px;">Stranger connected.</div>';
         });
 
         function sendMessage() {
@@ -70,8 +66,7 @@
             const text = input.value.trim();
             if (text && currentRoom) {
                 const msgDiv = document.getElementById("messages");
-                msgDiv.innerHTML += `<p style="color: #06b6d4; text-align: right;"><b>You:</b> ${text}</p>`;
-                
+                msgDiv.innerHTML += '<p style="color: #06b6d4; text-align: right;"><b>You:</b> ' + text + '</p>';
                 socket.emit("send-msg", { room: currentRoom, text: text });
                 input.value = "";
                 msgDiv.scrollTop = msgDiv.scrollHeight;
@@ -80,7 +75,7 @@
 
         socket.on("receive-msg", (text) => {
             const msgDiv = document.getElementById("messages");
-            msgDiv.innerHTML += `<p style="color: #e2e8f0; text-align: left;"><b>Stranger:</b> ${text}</p>`;
+            msgDiv.innerHTML += '<p style="color: #e2e8f0; text-align: left;"><b>Stranger:</b> ' + text + '</p>';
             msgDiv.scrollTop = msgDiv.scrollHeight;
         });
     </script>
